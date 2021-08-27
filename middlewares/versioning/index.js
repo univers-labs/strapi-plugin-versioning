@@ -1,12 +1,14 @@
+const { pluginId } = require('../../utils');
+
 module.exports = (strapi) => ({
   initialize() {
     const VALID_ADMIN_URLS = [
       /\/content-manager\/collection-types\/application/,
       /\/content-manager\/single-types\/application/,
     ];
-    const versioningPlugin = strapi.plugins['versioning-mongo'];
+    const versioningPlugin = strapi.plugins[pluginId];
     const versioningService = versioningPlugin.services.versioning;
-    const versionModel = strapi.query('version', 'versioning-mongo');
+    const versionModel = strapi.query('version', pluginId);
 
     const newVersionMethods = ['PUT', 'POST'];
     const shouldCreateVersion = (ctx, model) => (

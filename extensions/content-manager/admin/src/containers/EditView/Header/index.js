@@ -11,6 +11,7 @@ import { templateObject, ModalConfirm } from 'strapi-helper-plugin';
 import { getTrad } from '../../../utils';
 import { connect, getDraftRelations, select } from './utils';
 
+const pluginId = 'versioning-mongo';
 
 const parsePathname = (pathname) => {
   const pattern = /(?<collectionId>[^/]+)\/(?<entryId>\d+)(?:\/?(?<versionId>\d+)?)?$/;
@@ -19,7 +20,7 @@ const parsePathname = (pathname) => {
 };
 
 const makePathname = ({ collectionId, entryId }) =>
-  `/plugins/versioning-mongo/${collectionId}/${entryId}`;
+  `/plugins/${pluginId}/${collectionId}/${entryId}`;
 
 const primaryButtonObject = {
   color: 'primary',
