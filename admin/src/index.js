@@ -28,25 +28,6 @@ export default strapi => {
     name,
     preventComponentRendering: false,
     trads,
-    menu: {
-      pluginsSectionLinks: [
-        {
-          destination: `/plugins/${pluginId}`,
-          icon,
-          label: {
-            id: `${pluginId}.plugin.name`,
-            defaultMessage: 'Entry Versioning'
-          },
-          name,
-          permissions: [
-            {
-              action: 'plugins::versioning-mongo.restore',
-              subject: null
-            }
-          ]
-        }
-      ]
-    }
   }
 
   return strapi.registerPlugin(plugin)

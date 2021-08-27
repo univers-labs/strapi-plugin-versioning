@@ -5,23 +5,23 @@
  *
  */
 
-import React from 'react'
-import { Switch, Route } from 'react-router-dom'
-import { NotFound } from 'strapi-helper-plugin'
+import React from 'react';
+import { Switch, Route } from 'react-router-dom';
+import { NotFound } from 'strapi-helper-plugin';
+
 // Utils
-import pluginId from '../../pluginId'
+import pluginId from '../../pluginId';
+
 // Containers
-import HomePage from '../HomePage'
+import HomePage from '../HomePage';
+import DiffPage from '../DiffPage';
 
-const App = () => {
-  return (
-    <div>
-      <Switch>
-        <Route path={`/plugins/${pluginId}`} component={HomePage} exact />
-        <Route component={NotFound} />
-      </Switch>
-    </div>
-  )
-}
+const App = () => (
+  <Switch>
+    <Route exact path={`/plugins/${pluginId}/:collectionId/:entryId`} component={HomePage} />
+    <Route exact path={`/plugins/${pluginId}/:collectionId/:entryId/:versionId`} component={DiffPage} />
+    <Route component={NotFound} />
+  </Switch>
+);
 
-export default App
+export default App;

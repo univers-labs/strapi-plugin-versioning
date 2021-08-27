@@ -1,115 +1,80 @@
-import React, { memo, useState, useRef, useEffect } from 'react'
-import { InputText, Table, Button } from '@buffetjs/core'
-import { Col, Row } from 'reactstrap'
-import { request } from 'strapi-helper-plugin'
-import qs from 'querystring'
-import { sanitizeVersionList } from './helper'
-import pluginId from '../../pluginId'
+import React, { memo, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import { Table } from '@buffetjs/core';
+import { Col, Row } from 'reactstrap';
+import { request } from 'strapi-helper-plugin';
+import useSWR from 'swr';
+
+import { sanitizeVersionList } from './helper';
+import pluginId from '../../pluginId';
+
+function useVersionList(collectionId, entryId) {
+  const fetcher = async () =>
+    request(`/${pluginId}/${collectionId}/${entryId || '1'}`, { method: 'GET' });
+
+  const { data, error } = useSWR([collectionId, entryId], fetcher);
+
+  return {
+    data,
+    error,
+    isLoading: !error && !data,
+    isError: !!error,
+  };
+};
+
+const versionTableHeaders = [
+  {
+    name: 'Date',
+    value: 'createdAt',
+    isSortEnabled: true
+  },
+  {
+    name: 'Updated By',
+    value: 'updatedBy',
+    isSortEnabled: false
+  }
+];
 
 const VersionList = ({
   setLoading,
-  setSelectedVersion,
-  setHeaderMessage,
-  setConfiguration
+  collectionId,
+  entryId,
 }) => {
-  const query = qs.parse(location?.search?.replace('?', ''))
-  const [entryId, setEntryId] = useState(query?.entryId)
-  const [versionList, setVersionList] = useState([])
-  const loaded = useRef(false)
+  const history = useHistory();
 
-  const versionTableHeaders = [
-    {
-      name: 'Date',
-      value: 'createdAt',
-      isSortEnabled: true
-    },
-    {
-      name: 'Updated By',
-      value: 'updatedBy',
-      isSortEnabled: false
-    },
-    {
-      name: 'Collection Type',
-      value: 'globalName',
-      isSortEnabled: false
-    },
-    {
-      name: 'Id',
-      value: 'id',
-      isSortEnabled: false
-    }
-  ]
-
-  const listVersions = async () => {
-    try {
-      setLoading(true)
-      const response = await request(`/${pluginId}/list/${entryId}`, { method: 'GET' })
-      setVersionList(response)
-      setHeaderMessage('Select a version to compare and restore')
-    } catch (err) {
-      console.log(err)
-      setHeaderMessage(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const versionSelected = async (e, data) => {
-    const matchingVersion = versionList.find(({ _id }) => _id === data._id)
-    setSelectedVersion(matchingVersion)
-  }
-
-  if (query?.entryId && !loaded.current) {
-    loaded.current = true
-    listVersions()
-  }
+  const { data: versionList, isLoading, error } = useVersionList(collectionId, entryId);
 
   useEffect(() => {
-    const getConfiguration = async (collectionId) => {
-      const configuration = await request(`/content-manager/content-types/${collectionId}/configuration`, { method: 'GET' })
-      const contentTypes = await request('/content-manager/content-types', { method: 'GET' })
-      const contentType = contentTypes.data.find(({ uid }) => uid === collectionId)
-      configuration.data.contentType = contentType
-      setConfiguration(configuration.data)
-    }
-    const collectionId = versionList?.[0]?.collectionId
-    if (collectionId) {
-      getConfiguration(collectionId)
-    }
-  }, [versionList])
+    setLoading(isLoading);
+  }, [versionList, isLoading]);
+
+  const onVersionSelected = async (e, data) => {
+    history.push(`/plugins/${pluginId}/${collectionId}/${entryId}/${data.id}`);
+  };
+
+  if (isLoading) return null;
+  if (error) return (
+    <div style={{ color: 'red' }}>
+      <h3>Error</h3>
+      <pre>{error.message}</pre>
+    </div>
+  );
 
   return (
     <>
-      <Row>
-        <Col xs='5'>
-          <Row>
-            <Col>
-              <InputText
-                name='EntryId'
-                key='EntryId'
-                value={entryId}
-                onChange={(e) => setEntryId(e.target.value)}
-                placeholder='Enter Entry ID'
-              />
-            </Col>
-            <Col>
-              <Button color='primary' onClick={listVersions}>List Versions</Button>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
-      {versionList.length > 0 &&
+      {versionList.length > 0 && (
         <Row style={{ paddingTop: '10px' }}>
           <Col>
             <Table
               rows={sanitizeVersionList(versionList)}
               headers={versionTableHeaders}
-              onClickRow={versionSelected}
+              onClickRow={onVersionSelected}
             />
           </Col>
-        </Row>}
+        </Row>
+      )}
     </>
-  )
-}
+  );
+};
 
-export default memo(VersionList)
+export default memo(VersionList);

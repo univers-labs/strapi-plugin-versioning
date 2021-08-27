@@ -1,14 +1,25 @@
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react'
-import { useIntl } from 'react-intl'
-import { Header as PluginHeader } from '@buffetjs/custom'
-import { get, isEqual, isEmpty, toString } from 'lodash'
-import PropTypes from 'prop-types'
-import isEqualFastCompare from 'react-fast-compare'
-import { Text } from '@buffetjs/core'
-import { templateObject, ModalConfirm } from 'strapi-helper-plugin'
-import { getTrad } from '../../../utils'
-import { connect, getDraftRelations, select } from './utils'
-import { useHistory } from 'react-router-dom'
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
+import { useHistory, useLocation } from 'react-router-dom';
+import { useIntl } from 'react-intl';
+import { Header as PluginHeader } from '@buffetjs/custom';
+import { get, isEqual, isEmpty, toString } from 'lodash';
+import isEqualFastCompare from 'react-fast-compare';
+import { Text } from '@buffetjs/core';
+import { templateObject, ModalConfirm } from 'strapi-helper-plugin';
+
+import { getTrad } from '../../../utils';
+import { connect, getDraftRelations, select } from './utils';
+
+
+const parsePathname = (pathname) => {
+  const pattern = /(?<collectionId>[^/]+)\/(?<entryId>\d+)(?:\/?(?<versionId>\d+)?)?$/;
+  const match = pathname.match(pattern);
+  return match?.groups || null;
+};
+
+const makePathname = ({ collectionId, entryId }) =>
+  `/plugins/versioning-mongo/${collectionId}/${entryId}`;
 
 const primaryButtonObject = {
   color: 'primary',
@@ -30,7 +41,7 @@ const Header = ({
   modifiedData,
   onPublish,
   onUnpublish,
-  status
+  status,
 }) => {
   const [showWarningUnpublish, setWarningUnpublish] = useState(false)
   const { formatMessage } = useIntl()
@@ -40,7 +51,8 @@ const Header = ({
   const [shouldUnpublish, setShouldUnpublish] = useState(false)
   const [shouldPublish, setShouldPublish] = useState(false)
 
-  const { push } = useHistory()
+  const history = useHistory();
+  const location = useLocation();
 
   const currentContentTypeMainField = useMemo(() => get(layout, ['settings', 'mainField'], 'id'), [
     layout
@@ -123,15 +135,15 @@ const Header = ({
     }
 
     if (!isCreatingEntry && canUpdate) {
-      headerActions = [{
+      headerActions.unshift({
         label: 'View Versions',
         onClick: () => {
-          const id = location.pathname.split('/').pop()
-          push(`/plugins/versioning-mongo?entryId=${id}`)
+          const parsedPathname = parsePathname(location.pathname);
+          history.push(makePathname(parsedPathname));
         },
         color: 'secondary',
         type: 'button'
-      }, ...headerActions]
+      });
     }
 
     return headerActions
@@ -264,7 +276,7 @@ Header.propTypes = {
   hasDraftAndPublish: PropTypes.bool.isRequired,
   modifiedData: PropTypes.object.isRequired,
   onPublish: PropTypes.func.isRequired,
-  onUnpublish: PropTypes.func.isRequired
+  onUnpublish: PropTypes.func.isRequired,
 }
 
 const Memoized = memo(Header, isEqualFastCompare)

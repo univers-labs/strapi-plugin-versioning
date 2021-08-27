@@ -2,16 +2,16 @@
   "routes": [
     {
       "method": "GET",
-      "path": "/list/:id",
-      "handler": "versioning.list",
+      "path": "/:collectionId/:entryId",
+      "handler": "versioning.listVersionsForEntity",
       "config": {
         "policies": []
       }
     },
     {
       "method": "GET",
-      "path": "/:id",
-      "handler": "versioning.getVersion",
+      "path": "/:collectionId/:entryId/:versionId",
+      "handler": "versioning.getVersionForEntity",
       "config": {
         "policies": []
       }

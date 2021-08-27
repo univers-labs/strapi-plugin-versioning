@@ -1,25 +1,30 @@
-module.exports = strapi => ({
-  initialize () {
-    const versioningPlugin = strapi.plugins['versioning-mongo']
-    const versioningService = versioningPlugin.services.versioning
-    const versionModel = versioningPlugin.models.version
+module.exports = (strapi) => ({
+  initialize() {
+    const VALID_ADMIN_URLS = [
+      /\/content-manager\/collection-types\/application/,
+      /\/content-manager\/single-types\/application/,
+    ];
+    const versioningPlugin = strapi.plugins['versioning-mongo'];
+    const versioningService = versioningPlugin.services.versioning;
+    const versionModel = strapi.query('version', 'versioning-mongo');
 
-    const newVersionMethods = ['PUT', 'POST']
-    const shouldCreateVersion = (ctx, model) =>
-      ctx.request.url.includes('/content-manager/collection-types/application') &&
+    const newVersionMethods = ['PUT', 'POST'];
+    const shouldCreateVersion = (ctx, model) => (
+      VALID_ADMIN_URLS.some(pattern => pattern.test(ctx.request.url)) &&
       newVersionMethods.includes(ctx.request.method) &&
       model && ctx.response.message === 'OK'
+    );
 
     strapi.app.use(async (ctx, next) => {
-      await next()
-      const model = ctx?.params?.model
-      const id = ctx?.params?.id ?? ctx?.response?.body?.id
-      const strapiModel = versioningService.getStrapiModel(model)
+      await next();
+      const model = ctx?.params?.model;
+      const id = ctx?.params?.id ?? ctx?.response?.body?.id;
+      const strapiModel = versioningService.getStrapiModel(model);
       if (id && shouldCreateVersion(ctx, strapiModel)) {
-        const entry = await versioningService.getEntryVersion(strapiModel, id)
-        const versionEntry = versioningService.getVersionEntry(strapiModel, entry)
-        await versionModel.create(versionEntry)
+        const entry = await versioningService.getEntryVersion(strapiModel, id);
+        const versionEntry = versioningService.getVersionEntry(strapiModel, entry);
+        await versionModel.create(versionEntry);
       }
-    })
+    });
   }
-})
+});

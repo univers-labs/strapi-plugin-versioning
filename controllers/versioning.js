@@ -1,17 +1,25 @@
 module.exports = {
-  list: async (ctx) => {
-    const { id } = ctx.params
-    const versionModel = strapi.plugins['versioning-mongo'].models.version
-    const versions = await versionModel.find({ entryId: id }).lean()
+  listVersionsForEntity: async (ctx) => {
+    const { collectionId, entryId } = ctx.params;
+    const versionModel = strapi.query('version', 'versioning-mongo');
+    const versions = await versionModel.find({
+      collectionId,
+      entryId: entryId || '1',
+    });
 
-    ctx.send(versions)
+    ctx.send(versions);
   },
 
-  getVersion: async (ctx) => {
-    const { id } = ctx.params
-    const versionModel = strapi.plugins['versioning-mongo'].models.version
-    const version = await versionModel.findById(id).lean()
+  getVersionForEntity: async (ctx) => {
+    const { collectionId, entryId, versionId } = ctx.params;
+    const versionModel = strapi.query('version', 'versioning-mongo');
+    const version = await versionModel.findOne({
+      id: versionId,
+      collectionId,
+      entryId: entryId || '1',
+    });
 
-    ctx.send(version)
+    ctx.send(version);
   }
-}
+
+};
