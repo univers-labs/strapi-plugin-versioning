@@ -1,7 +1,7 @@
 module.exports.sanitizeVersionList = (versions) => {
   return versions
     .map(version => {
-      const createdAtDate = new Date(version.created_at)
+      const createdAtDate = new Date(version.created_at);
       return {
         id: version.id, // @buffetjs uses this as the child `key`
         createdAt: createdAtDate.toLocaleString(),
@@ -10,7 +10,7 @@ module.exports.sanitizeVersionList = (versions) => {
         globalName: version.globalName,
         collectionName: version.collectionName,
         entryId: version.entryId,
-      }
+      };
     })
-    .sort((a, b) => b.createdAtDate - a.createdAtDate)
-}
+    .sort((a, b) => b.createdAtDate - a.createdAtDate);
+};

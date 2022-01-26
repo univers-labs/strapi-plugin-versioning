@@ -154,4 +154,4 @@ export default function DiffPage({ match: { params } }) {
       </Container>
     </>
   );
-};
+}

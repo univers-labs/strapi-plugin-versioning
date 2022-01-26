@@ -20,7 +20,7 @@ function useVersionList(collectionId, entryId) {
     isLoading: !error && !data,
     isError: !!error,
   };
-};
+}
 
 const versionTableHeaders = [
   {
