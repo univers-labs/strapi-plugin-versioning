@@ -20,6 +20,11 @@ const cleanVersion = (version, config) => {
   return normalizeObject(cleaned);
 };
 
+const removeParentPage = (version) => {
+  if (version.parentPage) delete version.parentPage;
+  return version;
+};
+
 async function fetchVersion(collectionId, entryId, versionId) {
   const urlPath = `/${pluginId}/${collectionId}/${entryId || '1'}/${versionId}`;
   const version = await request(urlPath, { method: 'GET' });
@@ -104,11 +109,12 @@ export default function DiffPage({ match: { params } }) {
   const selected = cleanVersion(selectedVersion, config);
   const current = cleanVersion(currentVersion, config);
   const date = selected && new Date(selected.created_at).toLocaleString();
+  const restore = selectedVersion && removeParentPage(selectedVersion);
 
   const restoreVersion = async () => {
     setRestoring(true);
     try {
-      await request(`/content-manager/collection-types/${collectionId}/${entryId}`, { method: 'PUT', body: selected });
+      await request(`/content-manager/collection-types/${collectionId}/${entryId}`, { method: 'PUT', body: restore });
       history.push(`/plugins/content-manager/collectionType/${collectionId}/${entryId}`);
     } catch (e) {
       setError(e);
